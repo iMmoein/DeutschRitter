@@ -1,0 +1,10 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8');
+for(const [,src] of html.matchAll(/<script src="([^"]+)"/g)) assert(fs.existsSync(src),`Missing script: ${src}`);
+const sw=fs.readFileSync('sw.js','utf8');
+const core=sw.match(/const CORE = (\[[\s\S]*?\]);/)[1];
+for(const path of vm.runInNewContext(core)) assert(fs.existsSync(path),`Missing offline asset: ${path}`);
+const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
+for(const icon of manifest.icons) assert(fs.existsSync(icon.src));
+for(const path of fs.readdirSync('js').filter(p=>p.endsWith('.js'))) new vm.Script(fs.readFileSync('js/'+path,'utf8'),{filename:path});
+console.log('PASS: script syntax, offline core files and manifest icons.');
