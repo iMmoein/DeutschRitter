@@ -1299,8 +1299,10 @@ body {
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; } }
   </style>
   <link rel="stylesheet" href="studio.css">
+  <link rel="stylesheet" href="ui-shell.css">
 </head>
 <body>
+  <a class="skip-content" href="#main-view-container">رفتن به محتوای تمرین</a>
   <a class="skip-link" href="#main-view-container">رفتن به محتوای اصلی</a>
 
   <!-- Game Header -->
@@ -1310,7 +1312,7 @@ body {
         <span class="brand-icon">⚔️</span>
         <div>
           <div class="brand-title">DeutschRitter</div>
-          <div class="brand-subtitle">شوالیه‌ی آلمانی — آکادمی جامع A1 و A2</div>
+          <div class="brand-subtitle">سفر تمرین آلمانی · A1 / A2</div>
         </div>
       </div>
 
@@ -1379,11 +1381,16 @@ body {
       </button>
       <button class="tab-btn" data-tab="companion" onclick="switchTab('companion')">📚 Starten wir! · A1–A2</button>
       <button class="tab-btn" data-tab="exam" onclick="switchTab('exam')">
-        🎓 آزمون گوته
+        🎓 تمرین قالب آزمون
       </button>
     </nav>
   </header>
 
+  <section class="workspace-bar" aria-label="فضای یادگیری">
+    <div class="workspace-context"><h1 id="workspace-title">DeutschRitter</h1><p id="workspace-description">مسیر خودت را انتخاب کن و تمرین را ادامه بده.</p></div>
+    <div class="workspace-tools"><button class="shell-button shell-search" onclick="openAppNavigator()" aria-haspopup="dialog" aria-controls="app-navigator">⌕ جست‌وجوی بخش‌ها <kbd>Ctrl K</kbd></button><button class="shell-button" id="app-focus" aria-pressed="false">◉ تمرکز</button><button class="shell-button" id="app-large" aria-pressed="false">Aa متن بزرگ</button></div>
+  </section>
+  <dialog id="app-navigator" aria-labelledby="navigator-title"><div class="navigator-heading"><h2 id="navigator-title">کجا می‌خواهی تمرین کنی؟</h2><button class="shell-button" onclick="closeAppNavigator()" aria-label="بستن جست‌وجوی بخش‌ها">✕ بستن</button></div><label for="destination-search">نام فارسی یا آلمانی بخش را بنویس</label><input id="destination-search" type="search" autocomplete="off" placeholder="مثلاً گرامر، کتاب یا SRS"><p id="destination-count" role="status"></p><div id="destination-results"></div></dialog>
   <!-- Main View Container -->
   <main class="container" id="main-view-container" tabindex="-1">
     <!-- Rendered dynamically by JS -->
@@ -1623,6 +1630,7 @@ function switchTab(tabId) {
 }
 
 function renderActiveView() {
+  if(typeof syncAppShell==='function') syncAppShell();
   stopMediaPractice();
   const container = document.getElementById("main-view-container");
   if (!container) return;
@@ -3906,5 +3914,6 @@ function nextHoren() { horenMcState.locked=false;horenMcState.idx += 1; sounds.p
   <script src="js/companion-data.js"></script>
   <script src="js/companion.js"></script>
   <script src="js/studio.js"></script>
+  <script src="js/ui-shell.js"></script>
 </body>
 </html>

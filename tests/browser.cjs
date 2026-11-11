@@ -65,6 +65,21 @@ const server=http.createServer(async(req,res)=>{
     switchTab('map');return count;
   });
   assert.equal(visited,126);
+  await second.keyboard.press('Control+k');
+  await second.waitForFunction(()=>document.getElementById('app-navigator').open);
+  await second.locator('#destination-search').fill('SRS');
+  assert.equal(await second.locator('#destination-results button').count(),1);
+  await second.locator('#destination-results button').click();
+  assert.equal(await second.evaluate(()=>gameState.activeTab),'srs');
+  assert.equal(await second.locator('.nav-tabs [data-tab="srs"]').getAttribute('aria-current'),'page');
+  assert.equal(await second.evaluate(()=>document.activeElement.id),'main-view-container');
+  await second.locator('#app-focus').click();await second.locator('#app-large').click();
+  assert.equal(await second.locator('#app-focus').getAttribute('aria-pressed'),'true');
+  await second.keyboard.press('Control+k');
+  await second.locator('#destination-search').fill('NO SUCH DESTINATION');
+  assert.equal(await second.locator('#destination-results button').count(),0);
+  await second.keyboard.press('Escape');
+  assert.equal(await second.locator('#app-navigator').evaluate(el=>el.open),false);
   await second.evaluate(()=>{
     openCompanionUnit('companion-13');
     answerCompanion('companion-13',0,COMPANION_UNITS[12].questions[0].answer);
@@ -88,6 +103,7 @@ const server=http.createServer(async(req,res)=>{
   await second.waitForFunction(()=>typeof gameState!=='undefined' && gameState.playerName==='Real browser writer' && typeof queueAnswerReview==='function');
   await second.evaluate(()=>openCompanionUnit('companion-13'));
   assert.equal(await second.locator('#companion-draft').inputValue(),'Am Samstag habe ich gekocht.');
+  assert.equal(await second.evaluate(()=>document.body.classList.contains('app-focus')&&document.body.classList.contains('app-large')),true);
   await second.evaluate(()=>switchTab('studio'));
   assert.equal(await second.locator('#studio-reflection').inputValue(),'Morgen übe ich ohne Hilfe.');
   assert.equal(await second.locator('.studio-hero').evaluate(el=>getComputedStyle(el).display),'flex');
