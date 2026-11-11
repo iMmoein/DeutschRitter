@@ -2,12 +2,12 @@
 let activeTransfer=null;
 function startTransfer(actId) {
   const variants=window.TRANSFER_UNITS[actId];
-  if(!variants) return;
+  const container=document.getElementById('transfer-content');
+  if(!variants||!container||gameState.activeTab!=='quest'||gameState.currentQuestStep!=='learning'||gameState.currentActId!==actId)return;
   const history=(gameState.transferEvidence||[]).filter(r=>r.act===actId);
   const latest=history[history.length-1];
   const variant=variants.find(v=>!latest||v.id!==latest.variant)||variants[0];
-  activeTransfer={act:actId,variant:variant.id,submitted:false};
-  const container=document.getElementById('transfer-content');
+  activeTransfer={act:actId,variant:variant.id,submitted:false,owner:gameState,container};
   container.innerHTML=`<h4>ارزیابی جدا از مثال‌های درس — نسخه ${escapeHtml(variant.id)}</h4>
     <p>این بانک محدود و محلی است؛ ادعای سؤال همیشه‌ندیده، آزمون امن یا تأیید CEFR ندارد. پیش از پاسخ از راهنما استفاده نکن.</p>
     ${variant.items.map((q,i)=>`<label style="display:block;margin-top:14px" dir="ltr" for="transfer-${i}">${escapeHtml(q.prompt)}</label><input style="width:100%;padding:10px" dir="ltr" id="transfer-${i}" maxlength="500" autocomplete="off">`).join('')}
@@ -15,7 +15,7 @@ function startTransfer(actId) {
     <button class="rpg-btn-primary" onclick="submitTransfer()">ثبت اولین تلاش امروز این نسخه</button><div id="transfer-feedback" aria-live="polite"></div>`;
 }
 function submitTransfer() {
-  if(!activeTransfer||activeTransfer.submitted) return;
+  if(!activeTransfer||activeTransfer.submitted||activeTransfer.owner!==gameState||gameState.activeTab!=='quest'||gameState.currentQuestStep!=='learning'||gameState.currentActId!==activeTransfer.act||document.getElementById('transfer-content')!==activeTransfer.container)return;
   const variant=window.TRANSFER_UNITS[activeTransfer.act].find(v=>v.id===activeTransfer.variant);
   const answers=variant.items.map((_,i)=>document.getElementById('transfer-'+i).value.trim());
   const feedback=document.getElementById('transfer-feedback');

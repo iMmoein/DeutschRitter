@@ -1,5 +1,5 @@
 /* Local app shell only. TTS voices and optional media are not guaranteed offline. */
-const CACHE = 'deutschritter-shell-v14';
+const CACHE = 'deutschritter-shell-v15';
 const CORE = ['./', './index.html', './studio.css', './hero.jpg', './README.txt', './manifest.webmanifest', './icon.svg', './js/save-schema.js', './js/tab-guard.js', './js/persistence.js', './js/progress.js', './js/writing-feedback.js', './js/learning-data.js', './js/learning-lab.js', './js/transfer-data.js', './js/transfer-lab.js', './js/clinic-data.js', './js/clinic.js', './js/document-data.js', './js/audio.js', './js/media-practice.js', './js/companion-data.js', './js/companion.js', './js/studio.js'];
 const CORE_URLS = new Set(CORE.map(path => new URL(path, self.location.href).href));
 self.addEventListener('install', event => {

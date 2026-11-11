@@ -62,7 +62,7 @@ function renderStudioView(container) {
     textarea.oninput=()=>{if(current())session.reflection=textarea.value.slice(0,1500);};
     textarea.onchange=()=>{if(current()){session.reflection=textarea.value.slice(0,1500);saveState();}};
     container.querySelector('#studio-save').onclick=()=>{
-      if(studioSession()!==session||gameState.activeTab!=='studio')return;
+      if(!current())return;
       session.reflection=textarea.value.slice(0,1500);const success=saveState();container.querySelector('#studio-status').textContent=success?'یادداشت ذخیره شد.':'ذخیره ناموفق بود؛ از مدیریت پیشرفت خروجی بگیر.';
     };
   }

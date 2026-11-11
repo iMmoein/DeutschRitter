@@ -44,6 +44,23 @@ const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
   text.questions.forEach(q=>{w.answerLibraryQuiz(q.ans);[...timers.values()].filter(t=>t.delay===1200).at(-1).fn();});
   const xp=w.eval('gameState.daily.xp');w.renderLibraryQuiz(text);w.renderLibraryQuiz(text);
   assert.equal(w.eval('gameState.daily.xp'),xp);
+  // Two old successes do not hide the latest failed recall; future data is not evidence.
+  w.eval(`gameState.learningEvidence=[
+    {act:'act1',task:'exercise-0',kind:'production',correct:true,at:Date.now()-8*86400000},
+    {act:'act1',task:'exercise-0',kind:'production',correct:true,at:Date.now()-4*86400000},
+    {act:'act1',task:'exercise-0',kind:'production',correct:false,at:Date.now()-86400000},
+    {act:'act1',task:'exercise-0',kind:'production',correct:true,at:Date.now()+86400000}
+  ]`);
+  assert.equal(w.learningEvidenceSummary('act1').spaced,0);
+  assert.equal(w.learningEvidenceSummary('act1').recent,0);
+  w.eval('gameState.learningEvidence.pop();gameState.learningEvidence.pop()');
+  assert.equal(w.learningEvidenceSummary('act1').spaced,1);
+  w.openActQuest('act1');w.setQuestStep('learning');w.startTransfer('act1');
+  const oldCount=w.eval('(gameState.transferEvidence||[]).length');
+  w.switchTab('map');assert.doesNotThrow(()=>w.submitTransfer());
+  assert.equal(w.eval('(gameState.transferEvidence||[]).length'),oldCount);
+  assert.doesNotThrow(()=>w.startTransfer('act1'));
+  assert.equal(w.saveLearningDraft('act2'),false);
   assert.deepEqual(errors,[]);
   console.log('PASS: all-topic clinic, es-gibt correction, alternate answers, durable safe review queue, unavailable audio evidence, practical documents and library retry/timer/reward guards.');
  } finally {dom.window.close();}

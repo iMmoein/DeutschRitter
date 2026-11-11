@@ -20,15 +20,17 @@ function recordLearningEvidence(act, task, correct, kind) {
   return true;
 }
 function learningEvidenceSummary(actId) {
-  const records = learningRecords(actId);
+  const records = learningRecords(actId).filter(r=>r.at<=Date.now());
   const tasks = window.LEARNING_UNITS[actId].exercises.map((_,i) => 'exercise-' + i).concat('listening');
   const recent = tasks.filter(task => {
     const observations = records.filter(r => r.task === task && r.kind !== 'listening-assisted').sort((a,b)=>a.at-b.at);
     return observations.length && observations[observations.length-1].correct;
   }).length;
   const spaced = tasks.filter(task => {
-    const observations = records.filter(r=>r.task === task && r.correct && r.kind !== 'listening-assisted').sort((a,b)=>a.at-b.at);
-    return observations.length > 1 && observations[observations.length-1].at-observations[0].at >= 3*86400000;
+    const independent = records.filter(r=>r.task===task&&r.kind!=='listening-assisted').sort((a,b)=>a.at-b.at);
+    if(!independent.length||!independent[independent.length-1].correct)return false;
+    const observations=independent.filter(r=>r.correct);
+    return observations.length>1&&observations[observations.length-1].at-observations[0].at>=3*86400000;
   }).length;
   return {recent, spaced, count: tasks.length};
 }
@@ -72,8 +74,9 @@ function renderLearningLab(container, act) {
 }
 function submitLearningExercise(actId, index) {
   const task = window.LEARNING_UNITS[actId]?.exercises[index];
-  if (!task) return;
-  const value = document.getElementById(`learning-answer-${index}`).value;
+  const input=document.getElementById(`learning-answer-${index}`);
+  if (!task||!input||gameState.currentActId!==actId||gameState.currentQuestStep!=='learning'||gameState.activeTab!=='quest') return;
+  const value = input.value;
   if (!value.trim()) return;
   const correct = task.answers.some(a=>matchesGermanTarget(value, a));
   const recorded = recordLearningEvidence(actId, 'exercise-'+index, correct, 'production');
@@ -96,6 +99,7 @@ function submitLearningListening(actId, index) {
   feedback.textContent = `${correct ? 'Richtig.' : 'Noch einmal üben.'} ${assisted ? 'متن راهنما باز شده؛ پاسخ مستقل محسوب نمی‌شود.' : ''} ${task.explanation} ${recorded ? 'پاسخ ثبت شد؛ پخش صدا به‌تنهایی تضمین نمی‌کند که صدا شنیده شده است.' : 'تمرین مجدد، بدون تغییر سابقه امروز.'}`;
 }
 function saveLearningDraft(actId) {
+  if(gameState.activeTab!=='quest'||gameState.currentQuestStep!=='learning'||gameState.currentActId!==actId||!document.getElementById('learning-writing'))return false;
   gameState.learningDrafts = gameState.learningDrafts || {};
   gameState.learningDrafts[actId] = document.getElementById('learning-writing').value.slice(0,5000);
   const saved=saveState();
