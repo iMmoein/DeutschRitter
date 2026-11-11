@@ -1,1 +1,5 @@
 node_modules/
+
+# Release bundles stay local, not in repository history going forward
+*.zip
+*.zip.sha256
