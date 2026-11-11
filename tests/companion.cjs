@@ -22,6 +22,16 @@ const html=fs.readFileSync('index.html','utf8').replace(/<script src="([^"]+)"><
    const checkbox=d.getElementById('companion-speaking');checkbox.checked=true;checkbox.dispatchEvent(new w.Event('change'));
    assert.equal(run(`gameState.companionProgress['${unit.id}'].speakingReviewed`),true);
   }
+  // Editing a writing task must survive checking a different exercise.
+  w.openCompanionUnit('companion-01');
+  const editable=d.getElementById('companion-draft');editable.value='Mein neuer Entwurf bleibt erhalten.';
+  editable.dispatchEvent(new w.Event('input'));
+  w.answerCompanion('companion-01',0,w.COMPANION_UNITS[0].questions[0].answer);
+  assert.equal(d.getElementById('companion-draft').value,'Mein neuer Entwurf bleibt erhalten.');
+  editable.value='Detached stale edit';editable.dispatchEvent(new w.Event('input'));
+  assert.equal(d.getElementById('companion-draft').value,'Mein neuer Entwurf bleibt erhalten.');
+  // The detached old textarea still belongs to the same unit; only the live input should edit it.
+  const live=d.getElementById('companion-draft');live.value='<img src=x onerror=alert(1)> Mein Text.';live.dispatchEvent(new w.Event('input'));live.dispatchEvent(new w.Event('change'));
   const snapshot=JSON.parse(JSON.stringify(run('createSaveSnapshot()')));assert.equal(Object.keys(snapshot.companionProgress).length,24);
   w.replaceProgress(snapshot);w.openCompanionUnit('companion-01');assert(d.getElementById('companion-draft').value.startsWith('<img'));assert.equal(d.querySelectorAll('#companion-lesson img').length,0);
   const xp=run('gameState.daily.xp');w.answerCompanion('companion-01',0,999);w.answerCompanion('companion-02',0,0);w.answerCompanion('companion-01',2,'x'.repeat(301));assert.equal(run('gameState.daily.xp'),xp);

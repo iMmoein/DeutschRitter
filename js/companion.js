@@ -16,8 +16,13 @@ function selectCompanionLevel(level) {
 function companionText(value) {return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function renderCompanionView(container) {
   const esc=companionText;
+  const levelUnits=window.COMPANION_UNITS.filter(unit=>unit.level===companionLevel);
+  const attempted=levelUnits.filter(unit=>Object.keys(gameState.companionProgress?.[unit.id]?.answers||{}).length===3).length;
+  const next=levelUnits.find(unit=>Object.keys(gameState.companionProgress?.[unit.id]?.answers||{}).length<3)||levelUnits[0];
   container.innerHTML=`<section class="gr-card"><h2>📚 همراه Starten wir! · A1–A2</h2>
     <p>مسیر مستقل با تمرین‌های تألیفی برای زبان‌آموزان این کتاب؛ وابسته به ناشر نیست. متن، تصویر و صوت کتاب بازنشر نشده است. ترتیب و شماره درس‌ها هنوز با ویرایش مشخص کتاب تطبیق داده نشده؛ این‌ها فصل‌های رسمی کتاب نیستند.</p>
+    <div class="studio-metrics"><div><strong>${companionLevel}</strong><span>مسیر مستقل کتاب</span></div><div><strong>${attempted}/12</strong><span>واحد با سه پاسخ ثبت‌شده؛ نه گواهی تسلط</span></div><div><button class="rpg-btn-primary" onclick="openCompanionUnit('${next.id}')">ادامه مسیر ${companionLevel} ←</button></div></div>
+    <p>پیشرفت این بخش از پرده‌های داستانی جداست و بدون بازکردن آن‌ها در دسترس است.</p>
     <p>۲۴ واحد موضوعی: ۱۲ واحد A1 و ۱۲ واحد A2. این مجموعه مکمل است، نه پوشش تأییدشده تمام اهداف سطح یا جایگزین کتاب.</p>
     <button class="rpg-btn-secondary" onclick="exportCompanionReview()">خروجی تکالیف برای مدرس</button><div><button class="rpg-btn-secondary" onclick="selectCompanionLevel('A1')">A1</button> <button class="rpg-btn-secondary" onclick="selectCompanionLevel('A2')">A2</button></div>
     <div id="companion-units" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;"></div><div id="companion-lesson"></div></section>`;
@@ -54,13 +59,18 @@ function renderCompanionView(container) {
   const recall=document.createElement('section');recall.className='gr-card';recall.innerHTML=`<h4 lang="de">${esc(unit.gap.prompt)}</h4><p>این بازگویی هدایت‌شده است، نه آزمون ندیده؛ ابتدا مثال بالا را بپوشان.</p><label for="companion-recall">جمله آلمانی</label><input id="companion-recall" maxlength="300" dir="ltr" style="max-width:100%;box-sizing:border-box"><button class="rpg-btn-secondary" id="companion-check-recall">بررسی جمله</button><p id="companion-feedback-2" role="status"></p>`;questions.append(recall);
   if(progress.answers['2']) recall.querySelector('#companion-feedback-2').textContent=(progress.answers['2'].correct?'✅ ':'↩️ ')+unit.example;
   recall.querySelector('#companion-check-recall').onclick=()=>answerCompanion(unit.id,2,recall.querySelector('input').value);
+  const owner=gameState;
+  const current=()=>body.isConnected&&gameState===owner&&gameState.activeTab==='companion'&&companionUnitId===unit.id;
   const draft=body.querySelector('#companion-draft');draft.value=progress.draft;
+  // Keep in-memory edits across answer-triggered renders; commit on blur or explicit save.
+  draft.oninput=()=>{if(current())progress.draft=draft.value.slice(0,2000);};
+  draft.onchange=()=>{if(current()){progress.draft=draft.value.slice(0,2000);saveState();}};
   body.querySelector('#companion-save-draft').onclick=()=>{
-    if(gameState.activeTab!=='companion'||companionUnitId!==unit.id)return;
+    if(!current())return;
     progress.draft=draft.value.slice(0,2000);const ok=saveState();body.querySelector('#companion-save-status').textContent=ok?'پیش‌نویس ذخیره شد.':'ذخیره انجام نشد؛ از مدیریت پیشرفت خروجی بگیر.';
   };
   const speaking=body.querySelector('#companion-speaking');speaking.checked=progress.speakingReviewed;
-  speaking.onchange=()=>{progress.speakingReviewed=speaking.checked;saveState();};
+  speaking.onchange=()=>{if(!current())return;progress.speakingReviewed=speaking.checked;saveState();};
 }
 function answerCompanion(id,index,response) {
   if(gameState.activeTab!=='companion'||companionUnitId!==id) return;

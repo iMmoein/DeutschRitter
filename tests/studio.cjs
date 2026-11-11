@@ -15,7 +15,9 @@ const html=fs.readFileSync('index.html','utf8').replace(/<script src="([^"]+)"><
   const xp=run('gameState.xp');
   for(const step of ['recall','produce','transfer','forged'])w.completeStudioStep(step);
   assert.equal(session.done.length,0);
-  run('gameState.stats.reviews++');w.completeStudioStep('recall');w.completeStudioStep('recall');assert.equal(session.done.length,1);
+  d.getElementById('studio-reflection').value='Mein Plan bleibt.';
+  d.getElementById('studio-reflection').dispatchEvent(new w.Event('input'));
+  run('gameState.stats.reviews++');w.completeStudioStep('recall');w.completeStudioStep('recall');assert.equal(session.done.length,1);assert.equal(d.getElementById('studio-reflection').value,'Mein Plan bleibt.');
   run('gameState.learningDrafts={act2:"Heute schreibe ich selbst."}');w.completeStudioStep('produce');assert.equal(session.done.length,2);
   run('gameState.transferEvidence.push({act:"act2",variant:"B",results:[true,true,false],assisted:true,at:Date.now()})');w.completeStudioStep('transfer');assert.equal(session.done.length,2);
   run('gameState.transferEvidence.push({act:"act2",variant:"B",results:[true,true,false],assisted:false,at:Date.now()})');w.completeStudioStep('transfer');assert.equal(session.done.length,3);assert.equal(run('gameState.xp'),xp);
@@ -25,6 +27,10 @@ const html=fs.readFileSync('index.html','utf8').replace(/<script src="([^"]+)"><
   const bad=JSON.parse(JSON.stringify(snapshot));bad.studioSession.done=['forged'];assert.throws(()=>w.validateSave(bad));
   bad.studioSession.done=[];bad.studioSession.reflection='x'.repeat(1501);assert.throws(()=>w.validateSave(bad));
   w.openStudioStep('produce');assert.equal(run('gameState.currentActId'),'act2');assert.equal(run('gameState.currentQuestStep'),'learning');
+  // Imported valid sessions can refer to an act that is not unlocked anymore.
+  w.switchTab('studio');run('gameState.unlockedActs=["act1"]');
+  assert.doesNotThrow(()=>w.openStudioStep('transfer'));
+  assert.equal(run('gameState.activeTab'),'studio');
   run('gameState.studioSession.day="old day"');assert.equal(w.studioSession(),null);w.startStudioSession();assert.equal(w.studioSession().done.length,0);
   assert.deepEqual(errors,[]);console.log('PASS studio: transparent recommendation, assisted-evidence exclusion, stable daily plan, evidence-gated steps, no extra XP, safe reflection, persistence, limits, navigation and daily reset.');
  }finally{dom.window.close();}

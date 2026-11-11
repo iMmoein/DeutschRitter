@@ -32,6 +32,7 @@ function studioStepEvidence(step,session=studioSession()) {
 }
 function openStudioStep(step) {
   const session=studioSession();if(!session||!['recall','produce','transfer'].includes(step))return;
+  if(!gameState.unlockedActs.includes(session.act)){showLockedNotice();return;}
   if(step==='recall'&&Object.values(gameState.srsCards||{}).some(card=>card.nextReview<=Date.now())) {switchTab('srs');return;}
   openActQuest(session.act);setQuestStep('learning');
   if(step==='transfer')startTransfer(session.act);
@@ -51,12 +52,15 @@ function renderStudioView(container) {
     <div class="studio-step-grid">${steps.map(([id,num,title,time,description])=>`<section class="studio-panel"><span class="studio-step-number">${num}</span><span class="studio-time">${time}</span><h3>${title}</h3><p>${description}</p>${session?`<button class="rpg-btn-secondary" onclick="openStudioStep('${id}')">رفتن به تمرین</button> <button class="rpg-btn-primary" onclick="completeStudioStep('${id}')" ${session.done.includes(id)||!studioStepEvidence(id,session)?'disabled':''}>${session.done.includes(id)?'✓ ثبت شد':'ثبت انجام گام'}</button>`:'<p>اول مسیر امروز را بساز.</p>'}</section>`).join('')}</div>
     ${session?`<section class="studio-panel"><h3>یک جمله برای فردای خودت</h3><label for="studio-reflection">چه چیزی سخت بود؟ دفعه بعد چه چیزی را بدون کمک امتحان می‌کنی؟</label><textarea id="studio-reflection" maxlength="1500" rows="3"></textarea><button class="rpg-btn-secondary" id="studio-save">ذخیره یادداشت</button><p id="studio-status" role="status"></p><p>این گام‌ها ثبت فعالیت‌اند، نه اثبات تسلط. تکمیل مسیر XP اضافی ندارد تا انگیزه ثبت صوری ایجاد نشود.</p></section>`:''}
     <section class="studio-panel"><h3>اطلس شواهد · نه نمره سطح</h3><p>تلاش‌های همراه کمک از شواهد مستقل جدا هستند. پاسخ متفاوت از کلید را برای بازبینی مدرس نگه دار.</p><div class="studio-evidence">${window.GAME_DATA.acts.map(act=>{
-      const records=(gameState.learningEvidence||[]).filter(r=>r.act===act.id),transfers=(gameState.transferEvidence||[]).filter(r=>r.act===act.id&&!r.assisted),latest=transfers.at(-1),unlocked=gameState.unlockedActs.includes(act.id);
+      const records=(gameState.learningEvidence||[]).filter(r=>r.act===act.id),transfers=(gameState.transferEvidence||[]).filter(r=>r.act===act.id&&!r.assisted&&r.at<=Date.now()).sort((a,b)=>a.at-b.at),latest=transfers.at(-1),unlocked=gameState.unlockedActs.includes(act.id);
       return `<article><h4>${esc(act.title||act.id)}</h4><p>${records.length} مشاهده تمرین · ${transfers.length} تلاش انتقال بدون کمک</p><p>${latest?`آخرین تطابق با کلید: ${latest.results.filter(Boolean).length}/3`:'هنوز داده انتقال مستقل نداریم'}</p><button class="rpg-btn-secondary" onclick="openStudioAct('${act.id}')" ${unlocked?'':'disabled'}>${unlocked?'ورود به کارگاه':'هنوز باز نشده'}</button></article>`;
     }).join('')}</div></section>
     <footer class="studio-panel"><h3>دو مسیر، یک یادگیرنده</h3><p>مسیر اصلی را با کارگاه‌ها دنبال کن؛ اگر با کتاب درس می‌خوانی، مسیر مکمل مستقل A1/A2 را انتخاب کن.</p><button class="rpg-btn-secondary" onclick="switchTab('companion')">📚 مسیر همراه کتاب</button> <button class="rpg-btn-secondary" onclick="switchTab('map')">🗺️ نقشه بازی</button><p>ابزار تمرین غیررسمی؛ نه دوره تأییدشده یا جایگزین مدرس. صدای مرورگر هم ممکن است آنلاین باشد.</p></footer></div>`;
   if(session) {
     const textarea=container.querySelector('#studio-reflection');textarea.value=session.reflection;
+    const current=()=>textarea.isConnected&&studioSession()===session&&gameState.activeTab==='studio';
+    textarea.oninput=()=>{if(current())session.reflection=textarea.value.slice(0,1500);};
+    textarea.onchange=()=>{if(current()){session.reflection=textarea.value.slice(0,1500);saveState();}};
     container.querySelector('#studio-save').onclick=()=>{
       if(studioSession()!==session||gameState.activeTab!=='studio')return;
       session.reflection=textarea.value.slice(0,1500);const success=saveState();container.querySelector('#studio-status').textContent=success?'یادداشت ذخیره شد.':'ذخیره ناموفق بود؛ از مدیریت پیشرفت خروجی بگیر.';
