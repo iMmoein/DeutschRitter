@@ -127,5 +127,10 @@ function validateSave(input) {
       safe.companionProgress[id]=result;
     }
   }
+  if(Object.hasOwn(input,'studioSession')) {
+    const session=input.studioSession;
+    if(!object(session)||!actIds.includes(session.act)||!Array.isArray(session.done)||session.done.length>3||session.done.some(step=>!['recall','produce','transfer'].includes(step)))fail();
+    safe.studioSession={day:string(session.day,100),act:session.act,startedAt:number(session.startedAt,0,8640000000000000),baselineReviews:number(session.baselineReviews,0,1e9),baselinePracticeCount:number(session.baselinePracticeCount,0,2000),baselineTransferCount:number(session.baselineTransferCount,0,500),baselineDraft:string(session.baselineDraft,5000),done:[...new Set(session.done)],reflection:string(session.reflection,1500)};
+  }
   return safe;
 }

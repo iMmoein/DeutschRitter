@@ -3,7 +3,7 @@ const {chromium:playwright}=require('playwright-core');
 const chromium=require('@sparticuz/chromium').default;
 const http=require('node:http'),fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.jpg':'image/jpeg','.svg':'image/svg+xml','.txt':'text/plain; charset=utf-8'};
+const mime={'.css':'text/css; charset=utf-8','.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.jpg':'image/jpeg','.svg':'image/svg+xml','.txt':'text/plain; charset=utf-8'};
 const server=http.createServer(async(req,res)=>{
  try {
   const url=new URL(req.url,'http://localhost'),relative=decodeURIComponent(url.pathname);
@@ -60,11 +60,11 @@ const server=http.createServer(async(req,res)=>{
       setQuestStep('skills');
       for(const tab of ['buchstabieren','zahlen','diktat','horen','schreiben','sprechen']) {setSkillsTab(tab);count++;}
     }
-    for(const tab of ['map','arena','srs','grammar','dict','test','library','plan','exam','companion']) {switchTab(tab);count++;}
+    for(const tab of ['map','arena','srs','grammar','dict','test','library','plan','exam','companion','studio']) {switchTab(tab);count++;}
     switchTab('arena');for(const game of ['slasher','puzzle','duell']) {switchArenaGame(game);count++;}
     switchTab('map');return count;
   });
-  assert.equal(visited,125);
+  assert.equal(visited,126);
   await second.evaluate(()=>{
     openCompanionUnit('companion-13');
     answerCompanion('companion-13',0,COMPANION_UNITS[12].questions[0].answer);
@@ -72,6 +72,11 @@ const server=http.createServer(async(req,res)=>{
     document.getElementById('companion-save-draft').click();
   });
   assert.equal(await second.locator('#companion-draft').inputValue(),'Am Samstag habe ich gekocht.');
+  await second.evaluate(()=>{
+    startStudioSession();
+    document.getElementById('studio-reflection').value='Morgen übe ich ohne Hilfe.';
+    document.getElementById('studio-save').click();
+  });
   // Actual Service Worker, cache installation, offline navigation and external JS loading.
   await second.evaluate(()=>navigator.serviceWorker.ready);
   // ready may resolve after activation has claimed existing clients; navigation
@@ -83,6 +88,9 @@ const server=http.createServer(async(req,res)=>{
   await second.waitForFunction(()=>typeof gameState!=='undefined' && gameState.playerName==='Real browser writer' && typeof queueAnswerReview==='function');
   await second.evaluate(()=>openCompanionUnit('companion-13'));
   assert.equal(await second.locator('#companion-draft').inputValue(),'Am Samstag habe ich gekocht.');
+  await second.evaluate(()=>switchTab('studio'));
+  assert.equal(await second.locator('#studio-reflection').inputValue(),'Morgen übe ich ohne Hilfe.');
+  assert.equal(await second.locator('.studio-hero').evaluate(el=>getComputedStyle(el).display),'flex');
   await context.setOffline(false);
   assert.equal(await second.evaluate(()=>tabWriteAccess),'writer');
   // A narrow mobile viewport is a browser check, not a claim about physical phones.
@@ -92,6 +100,9 @@ const server=http.createServer(async(req,res)=>{
   await phone.evaluate(()=>{openActQuest('act1');setQuestStep('learning');});
   const layout=await phone.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));
   assert(layout.scroll<=layout.width+1,`Mobile overflow: ${JSON.stringify(layout)}`);
+  await phone.evaluate(()=>switchTab('studio'));
+  const studioLayout=await phone.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));
+  assert(studioLayout.scroll<=studioLayout.width+1,`Studio mobile overflow: ${JSON.stringify(studioLayout)}`);
   // Direct file mode remains supported, without claiming Service Worker availability there.
   const direct=await browser.newContext(),filePage=await direct.newPage();filePage.on('pageerror',e=>errors.push(e.message));
   await filePage.goto('file://'+path.join(root,'index.html'));
