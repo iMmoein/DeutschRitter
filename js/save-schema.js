@@ -132,5 +132,15 @@ function validateSave(input) {
     if(!object(session)||!actIds.includes(session.act)||!Array.isArray(session.done)||session.done.length>3||session.done.some(step=>!['recall','produce','transfer'].includes(step)))fail();
     safe.studioSession={day:string(session.day,100),act:session.act,startedAt:number(session.startedAt,0,8640000000000000),baselineReviews:number(session.baselineReviews,0,1e9),baselinePracticeCount:number(session.baselinePracticeCount,0,2000),baselineTransferCount:number(session.baselineTransferCount,0,500),baselineDraft:string(session.baselineDraft,5000),done:[...new Set(session.done)],reflection:string(session.reflection,1500)};
   }
+  if(Object.hasOwn(input,'coachPlan')) {
+    const plan=input.coachPlan;
+    if(!object(plan)||![10,20,30,45].includes(plan.minutes)||!['main','book'].includes(plan.track)||!['A1','A2'].includes(plan.level)||!object(plan.done)||Object.keys(plan.done).length>28)fail();
+    safe.coachPlan={startedAt:number(plan.startedAt,0,8640000000000000-28*86400000),minutes:plan.minutes,track:plan.track,level:plan.level,startAct:number(plan.startAct,0,7),startUnit:number(plan.startUnit,0,11),done:{}};
+    if(!Number.isInteger(plan.startAct)||!Number.isInteger(plan.startUnit))fail();
+    for(const [key,value] of Object.entries(plan.done)) {
+      if(!/^(?:[0-9]|1[0-9]|2[0-7])$/.test(key)||!object(value))fail();
+      safe.coachPlan.done[key]={at:number(value.at,0,8640000000000000)};
+    }
+  }
   return safe;
 }

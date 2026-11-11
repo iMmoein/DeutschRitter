@@ -1388,7 +1388,7 @@ body {
 
   <section class="workspace-bar" aria-label="فضای یادگیری">
     <div class="workspace-context"><h1 id="workspace-title">DeutschRitter</h1><p id="workspace-description">مسیر خودت را انتخاب کن و تمرین را ادامه بده.</p></div>
-    <div class="workspace-tools"><button class="shell-button shell-search" onclick="openAppNavigator()" aria-haspopup="dialog" aria-controls="app-navigator">⌕ جست‌وجوی بخش‌ها <kbd>Ctrl K</kbd></button><button class="shell-button" id="app-focus" aria-pressed="false">◉ تمرکز</button><button class="shell-button" id="app-large" aria-pressed="false">Aa متن بزرگ</button></div>
+    <div class="workspace-tools"><button class="shell-button" onclick="switchTab('plan')">👤 نام و برنامه من</button><button class="shell-button shell-search" onclick="openAppNavigator()" aria-haspopup="dialog" aria-controls="app-navigator">⌕ جست‌وجوی بخش‌ها <kbd>Ctrl K</kbd></button><button class="shell-button" id="app-focus" aria-pressed="false">◉ تمرکز</button><button class="shell-button" id="app-large" aria-pressed="false">Aa متن بزرگ</button></div>
   </section>
   <dialog id="app-navigator" aria-labelledby="navigator-title"><div class="navigator-heading"><h2 id="navigator-title">کجا می‌خواهی تمرین کنی؟</h2><button class="shell-button" onclick="closeAppNavigator()" aria-label="بستن جست‌وجوی بخش‌ها">✕ بستن</button></div><label for="destination-search">نام فارسی یا آلمانی بخش را بنویس</label><input id="destination-search" type="search" autocomplete="off" placeholder="مثلاً گرامر، کتاب یا SRS"><p id="destination-count" role="status"></p><div id="destination-results"></div></dialog>
   <!-- Main View Container -->
@@ -1654,7 +1654,7 @@ function renderActiveView() {
   } else if (gameState.activeTab === "library") {
     renderLibraryView(container);
   } else if (gameState.activeTab === "plan") {
-    renderPlanView(container);
+    renderCoachPlan(container);
   } else if (gameState.activeTab === "companion") {
     renderCompanionView(container);
   } else if (gameState.activeTab === "exam") {
@@ -3598,7 +3598,7 @@ function answerLibraryQuiz(sel) {
 }
 
 // ==================== P3: 90-DAY STUDY PLAN ====================
-function renderPlanView(container) {
+function renderLegacyPlanView(container) {
   const acts = window.GAME_DATA.acts;
   const days = [];
   for (let d = 1; d <= 90; d++) {
@@ -3915,5 +3915,6 @@ function nextHoren() { horenMcState.locked=false;horenMcState.idx += 1; sounds.p
   <script src="js/companion.js"></script>
   <script src="js/studio.js"></script>
   <script src="js/ui-shell.js"></script>
+  <script src="js/coach.js"></script>
 </body>
 </html>

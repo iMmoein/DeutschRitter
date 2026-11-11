@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "node tests/regression.cjs && node tests/dom.cjs && node tests/reliability.cjs && node tests/progress.cjs && node tests/education.cjs && node tests/tabs-and-days.cjs && node tests/media.cjs && node tests/games-and-skills.cjs && node tests/companion.cjs && node tests/studio.cjs && node tests/service-worker.cjs && node scripts/check-assets.cjs && node scripts/audit-content.cjs",
+    "test": "node tests/regression.cjs && node tests/dom.cjs && node tests/reliability.cjs && node tests/progress.cjs && node tests/education.cjs && node tests/tabs-and-days.cjs && node tests/media.cjs && node tests/games-and-skills.cjs && node tests/companion.cjs && node tests/studio.cjs && node tests/coach.cjs && node tests/service-worker.cjs && node scripts/check-assets.cjs && node scripts/audit-content.cjs",
     "audit:content": "node scripts/audit-content.cjs",
     "test:browser": "node tests/browser.cjs",
     "test:all": "npm test && npm run test:browser"

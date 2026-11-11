@@ -65,6 +65,13 @@ const server=http.createServer(async(req,res)=>{
     switchTab('map');return count;
   });
   assert.equal(visited,126);
+  await second.evaluate(()=>switchTab('plan'));
+  await second.locator('#coach-name').fill('Nora');
+  await second.locator('#coach-minutes').selectOption('20');
+  await second.locator('#coach-profile button[type="submit"]').click();
+  assert.equal(await second.locator('.coach-day').count(),7);
+  await second.evaluate(()=>setCoachView(28));
+  assert.equal(await second.locator('.coach-day').count(),28);
   await second.keyboard.press('Control+k');
   await second.waitForFunction(()=>document.getElementById('app-navigator').open);
   await second.locator('#destination-search').fill('SRS');
@@ -100,13 +107,16 @@ const server=http.createServer(async(req,res)=>{
   await second.waitForFunction(()=>!!navigator.serviceWorker.controller);
   await context.setOffline(true);
   await second.reload({waitUntil:'domcontentloaded'});
-  await second.waitForFunction(()=>typeof gameState!=='undefined' && gameState.playerName==='Real browser writer' && typeof queueAnswerReview==='function');
+  await second.waitForFunction(()=>typeof gameState!=='undefined' && gameState.playerName==='Nora' && typeof queueAnswerReview==='function');
   await second.evaluate(()=>openCompanionUnit('companion-13'));
   assert.equal(await second.locator('#companion-draft').inputValue(),'Am Samstag habe ich gekocht.');
   assert.equal(await second.evaluate(()=>document.body.classList.contains('app-focus')&&document.body.classList.contains('app-large')),true);
   await second.evaluate(()=>switchTab('studio'));
   assert.equal(await second.locator('#studio-reflection').inputValue(),'Morgen übe ich ohne Hilfe.');
   assert.equal(await second.locator('.studio-hero').evaluate(el=>getComputedStyle(el).display),'flex');
+  await second.evaluate(()=>switchTab('plan'));
+  assert.equal(await second.locator('#coach-name').inputValue(),'Nora');
+  assert.equal(await second.locator('#coach-minutes').inputValue(),'20');
   await context.setOffline(false);
   assert.equal(await second.evaluate(()=>tabWriteAccess),'writer');
   // A narrow mobile viewport is a browser check, not a claim about physical phones.

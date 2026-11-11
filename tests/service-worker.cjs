@@ -1,5 +1,5 @@
 const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict');
-const handlers={},entries=new Map(),deleted=[],keys=['deutschritter-shell-v6','deutschritter-shell-v16','deutschritter-other-app','other-cache'];
+const handlers={},entries=new Map(),deleted=[],keys=['deutschritter-shell-v6','deutschritter-shell-v17','deutschritter-other-app','other-cache'];
 let cacheFails=false,networkFails=false,openFails=false;
 const cache={addAll:async()=>{},put:async(k,v)=>{if(cacheFails)throw Error('quota');entries.set(k,v);},match:async k=>entries.get(k)};
 const response=()=>{const r=new Response('network');Object.defineProperty(r,'type',{value:'basic'});return r;};

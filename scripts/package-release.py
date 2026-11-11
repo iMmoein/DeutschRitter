@@ -12,7 +12,7 @@ ROOT_FILES = [
     'index.html', 'studio.css', 'ui-shell.css', 'hero.jpg', 'icon.svg', 'manifest.webmanifest', 'sw.js',
     'Deutsch-lernen.bat', 'README.txt', 'QUICK_START_FA.txt',
     'PREVIOUS_VERSION_AUDIT.md', 'PROJECT_REPORT.md', 'AUDIT.md',
-    'TEACHING_GUIDE.md', 'RELEASE_CHECKLIST.md', 'COMPANION_GUIDE.md', 'LERNSTUDIO.md', 'package.json',
+    'TEACHING_GUIDE.md', 'RELEASE_CHECKLIST.md', 'COMPANION_GUIDE.md', 'LERNSTUDIO.md', 'COACH_GUIDE.md', 'package.json',
     'package-lock.json', '.gitignore',
 ]
 SOURCE_DIRS = ['js', 'scripts', 'tests', '.github/workflows']

@@ -1,0 +1,21 @@
+const {JSDOM,VirtualConsole}=require('jsdom');const fs=require('node:fs'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8').replace(/<script src="([^"]+)"><\/script>/g,(_,p)=>`<script>${fs.readFileSync(p,'utf8')}</script>`);
+(async()=>{const errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));const dom=new JSDOM(html,{url:'http://localhost/',runScripts:'dangerously',virtualConsole:vc,beforeParse(w){w.scrollTo=()=>{};}});await new Promise(resolve=>dom.window.addEventListener('load',resolve,{once:true}));const w=dom.window,d=w.document,run=code=>w.eval(code);
+try{
+ w.switchTab('plan');assert(d.getElementById('coach-name'));w.saveCoachProfile();assert(d.getElementById('coach-profile-status').textContent.includes('نامی'));
+ d.getElementById('coach-name').value='مینا';d.getElementById('coach-minutes').value='30';w.saveCoachProfile();
+ assert.equal(run('gameState.playerName'),'مینا');assert.equal(run('gameState.coachPlan.minutes'),30);assert.equal(d.querySelectorAll('.coach-day').length,7);
+ const started=run('gameState.coachPlan.startedAt');w.setCoachView(28);assert.equal(d.querySelectorAll('.coach-day').length,28);
+ assert.equal(new Set(Array.from({length:28},(_,i)=>w.coachDay(i).date.toDateString())).size,28);
+ assert.equal(w.coachDay(-1),null);assert.equal(w.coachDay(28),null);
+ const xp=run('gameState.xp');w.setCoachDay(0,true);w.setCoachDay(0,true);w.setCoachDay(28,true);assert.equal(Object.keys(run('gameState.coachPlan.done')).length,1);assert.equal(run('gameState.xp'),xp);
+ d.getElementById('coach-name').value='سارا';d.getElementById('coach-minutes').value='10';w.saveCoachProfile();assert.equal(run('gameState.coachPlan.startedAt'),started);assert.equal(Object.keys(run('gameState.coachPlan.done')).length,1);
+ w.switchTab('studio');assert(d.querySelector('.studio-hero').textContent.includes('سارا'));
+ w.switchTab('plan');d.getElementById('coach-track').value='book';w.saveCoachProfile();assert.equal(run('gameState.coachPlan.track'),'main');assert(d.getElementById('coach-profile-status').textContent.includes('تأیید'));
+ d.getElementById('coach-track').value='book';d.getElementById('coach-level').value='A2';d.getElementById('coach-rebuild').checked=true;w.saveCoachProfile();assert.equal(run('gameState.coachPlan.track'),'book');assert.equal(w.coachDay(0).unit.level,'A2');assert.equal(Object.keys(run('gameState.coachPlan.done')).length,0);
+ assert(w.coachDay(5).task.includes('آزمون انتقال ندیده نیستند'));w.openCoachDay(0);assert.equal(run('gameState.activeTab'),'companion');assert.equal(run('companionUnitId'),'companion-13');
+ w.switchTab('plan');d.getElementById('coach-name').value='<img src=x onerror=alert(1)>';w.saveCoachProfile();assert.equal(d.querySelectorAll('.coach-shell img').length,0);
+ const snapshot=JSON.parse(JSON.stringify(run('createSaveSnapshot()')));w.replaceProgress(snapshot);w.switchTab('plan');assert.equal(d.getElementById('coach-name').value,'<img src=x onerror=alert(1)>');
+ const bad=JSON.parse(JSON.stringify(snapshot));bad.coachPlan.minutes=999;assert.throws(()=>w.validateSave(bad));bad.coachPlan.minutes=20;bad.coachPlan.done={'28':{at:Date.now()}};assert.throws(()=>w.validateSave(bad));
+ assert.deepEqual(errors,[]);console.log('PASS coach: profile/name safety, personalized greeting, 7/28-day plans, unique dates, budget update without reset, explicit rebuild, A2 book routing, self-reports without XP, persistence and invalid input.');
+}finally{dom.window.close();}})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -2,7 +2,7 @@ const {readFileSync} = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const html = readFileSync('index.html', 'utf8');
-const script = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n') + '\n' + ['js/save-schema.js','js/tab-guard.js','js/persistence.js','js/progress.js','js/writing-feedback.js','js/learning-data.js','js/learning-lab.js','js/transfer-data.js','js/transfer-lab.js','js/clinic-data.js','js/clinic.js','js/document-data.js','js/audio.js','js/media-practice.js'].map(p=>readFileSync(p,'utf8')).join('\n');
+const script = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n') + '\n' + ['js/save-schema.js','js/tab-guard.js','js/persistence.js','js/progress.js','js/writing-feedback.js','js/learning-data.js','js/learning-lab.js','js/transfer-data.js','js/transfer-lab.js','js/clinic-data.js','js/clinic.js','js/document-data.js','js/audio.js','js/media-practice.js','js/companion-data.js','js/companion.js','js/studio.js','js/ui-shell.js','js/coach.js'].map(p=>readFileSync(p,'utf8')).join('\n');
 const storage = new Map();
 const elements = new Map();
 const el = id => {if(!elements.has(id)) elements.set(id,{value:'',innerHTML:'',style:{},classList:{add(){},toggle(){}}});return elements.get(id);};
